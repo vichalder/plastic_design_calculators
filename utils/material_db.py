@@ -20,6 +20,54 @@ WLF_CONSTANTS = {
         "T_ref": 23.0,
         "description": "Polypropylene, Tref=23°C",
     },
+    "ABS": {
+        "C1": 14.3,
+        "C2": 52.5,
+        "T_ref": 100.0,
+        "description": "ABS, Tref=Tg=100°C",
+    },
+    "PA66_dry": {
+        "C1": 15.0,
+        "C2": 45.0,
+        "T_ref": 50.0,
+        "description": "PA66 dry, Tref=Tg=50°C",
+    },
+    "PEEK": {
+        "C1": 14.5,
+        "C2": 50.2,
+        "T_ref": 143.0,
+        "description": "PEEK, Tref=Tg=143°C",
+    },
+    "PPS": {
+        "C1": 16.2,
+        "C2": 53.1,
+        "T_ref": 90.0,
+        "description": "PPS, Tref=Tg=90°C",
+    },
+    "PVC": {
+        "C1": 18.5,
+        "C2": 45.8,
+        "T_ref": 80.0,
+        "description": "Rigid PVC, Tref=Tg=80°C",
+    },
+    "POM": {
+        "C1": 17.4,
+        "C2": 51.6,
+        "T_ref": -60.0,
+        "description": "POM, Tref=Tg=-60°C",
+    },
+    "PE_HD": {
+        "C1": 6.0,
+        "C2": 150.0,
+        "T_ref": 190.0,
+        "description": "PE-HD melt, Tref=190°C",
+    },
+    "PE_LD": {
+        "C1": 8.5,
+        "C2": 174.0,
+        "T_ref": 190.0,
+        "description": "PE-LD melt, Tref=190°C",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -67,6 +115,36 @@ CREEP_COMPLIANCE = {
         "n": 0.15,
         "description": "PEEK, 23°C",
     },
+    "ABS": {
+        "J0": 4.25e-10,
+        "A": 5.0e-11,
+        "n": 0.27,
+        "description": "ABS, 23°C",
+    },
+    "PPS_GF40": {
+        "J0": 7.2e-11,
+        "A": 1.0e-11,
+        "n": 0.13,
+        "description": "PPS 40% glass-filled, 23°C",
+    },
+    "PVC": {
+        "J0": 3.25e-10,
+        "A": 4.0e-11,
+        "n": 0.22,
+        "description": "Rigid PVC, 23°C",
+    },
+    "PE_HD": {
+        "J0": 1.1e-9,
+        "A": 0.018e-9,
+        "n": 0.06,
+        "description": "PE-HD, 23°C",
+    },
+    "PE_LD": {
+        "J0": 5.0e-9,
+        "A": 0.080e-9,
+        "n": 0.13,
+        "description": "PE-LD, 23°C",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -98,6 +176,48 @@ RELAXATION_MODULUS = {
         "poisson": 0.37,
         "description": "Polycarbonate",
     },
+    "ABS": {
+        "times_h": [0.01, 1, 10, 100, 1000, 10000],
+        "Er_Pa":   [2.3e9, 2.1e9, 1.95e9, 1.8e9, 1.65e9, 1.5e9],
+        "poisson": 0.35,
+        "description": "ABS",
+    },
+    "PA66_dry": {
+        "times_h": [0.01, 1, 10, 100, 1000, 10000],
+        "Er_Pa":   [3.2e9, 2.8e9, 2.5e9, 2.2e9, 1.9e9, 1.6e9],
+        "poisson": 0.40,
+        "description": "PA66 dry",
+    },
+    "PEEK": {
+        "times_h": [0.01, 1, 10, 100, 1000, 10000],
+        "Er_Pa":   [4.0e9, 3.9e9, 3.85e9, 3.75e9, 3.65e9, 3.5e9],
+        "poisson": 0.38,
+        "description": "PEEK",
+    },
+    "PPS_unfilled": {
+        "times_h": [0.01, 1, 10, 100, 1000, 10000],
+        "Er_Pa":   [3.4e9, 3.3e9, 3.15e9, 3.0e9, 2.85e9, 2.7e9],
+        "poisson": 0.37,
+        "description": "PPS unfilled",
+    },
+    "PVC": {
+        "times_h": [0.01, 1, 10, 100, 1000, 10000],
+        "Er_Pa":   [3.3e9, 2.9e9, 2.75e9, 2.6e9, 2.4e9, 2.2e9],
+        "poisson": 0.38,
+        "description": "Rigid PVC",
+    },
+    "PE_HD": {
+        "times_h": [0.01, 1, 10, 100, 1000, 10000],
+        "Er_Pa":   [8.0e8, 7.0e8, 6.0e8, 5.0e8, 4.0e8, 3.0e8],
+        "poisson": 0.40,
+        "description": "PE-HD",
+    },
+    "PE_LD": {
+        "times_h": [0.01, 1, 10, 100, 1000, 10000],
+        "Er_Pa":   [2.0e8, 1.5e8, 1.3e8, 1.1e8, 9.0e7, 7.0e7],
+        "poisson": 0.45,
+        "description": "PE-LD",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -121,6 +241,70 @@ FATIGUE_COEFFICIENTS = {
         "c": -0.60,
         "description": "PA66 GF30, snap-fit cyclic loading",
     },
+    "POM": {
+        "sigma_f_prime_Pa": 90e6,
+        "E_Pa": 2_800e6,
+        "b": -0.06,
+        "epsilon_f_prime": 0.20,
+        "c": -0.55,
+        "description": "POM (Delrin 100)",
+    },
+    "PC": {
+        "sigma_f_prime_Pa": 100e6,
+        "E_Pa": 2_300e6,
+        "b": -0.07,
+        "epsilon_f_prime": 0.50,
+        "c": -0.60,
+        "description": "Polycarbonate",
+    },
+    "ABS": {
+        "sigma_f_prime_Pa": 60e6,
+        "E_Pa": 2_000e6,
+        "b": -0.10,
+        "epsilon_f_prime": 0.15,
+        "c": -0.55,
+        "description": "ABS",
+    },
+    "PEEK": {
+        "sigma_f_prime_Pa": 145e6,
+        "E_Pa": 3_700e6,
+        "b": -0.05,
+        "epsilon_f_prime": 0.28,
+        "c": -0.60,
+        "description": "PEEK",
+    },
+    "PPS_GF40": {
+        "sigma_f_prime_Pa": 180e6,
+        "E_Pa": 14_500e6,
+        "b": -0.10,
+        "epsilon_f_prime": 0.02,
+        "c": -0.60,
+        "description": "PPS 40% glass-filled",
+    },
+    "PVC": {
+        "sigma_f_prime_Pa": 70e6,
+        "E_Pa": 3_000e6,
+        "b": -0.11,
+        "epsilon_f_prime": 0.10,
+        "c": -0.65,
+        "description": "Rigid PVC",
+    },
+    "PE_HD": {
+        "sigma_f_prime_Pa": 55e6,
+        "E_Pa": 1_000e6,
+        "b": -0.10,
+        "epsilon_f_prime": 0.65,
+        "c": -0.60,
+        "description": "PE-HD",
+    },
+    "PE_LD": {
+        "sigma_f_prime_Pa": 25e6,
+        "E_Pa": 300e6,
+        "b": -0.12,
+        "epsilon_f_prime": 1.5,
+        "c": -0.70,
+        "description": "PE-LD",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -128,11 +312,16 @@ FATIGUE_COEFFICIENTS = {
 # ---------------------------------------------------------------------------
 FRICTION_COEFFICIENTS = {
     "PP_steel": 0.30,
+    "PP_copolymer_steel": 0.30,
     "PE_steel": 0.25,
+    "PE_LD_steel": 0.40,
     "PA66_steel": 0.28,
     "POM_steel": 0.20,
     "PC_steel": 0.35,
     "ABS_steel": 0.40,
+    "PEEK_steel": 0.35,
+    "PPS_steel": 0.45,
+    "PVC_steel": 0.55,
 }
 
 # ---------------------------------------------------------------------------
@@ -140,12 +329,16 @@ FRICTION_COEFFICIENTS = {
 # ---------------------------------------------------------------------------
 SHRINKAGE_RATES = {
     "PP":     0.015,
+    "PP_copolymer": 0.018,
     "PE_HD":  0.020,
+    "PE_LD":  0.025,
     "PA66":   0.012,
     "POM":    0.020,
     "PC":     0.006,
     "ABS":    0.006,
     "PEEK":   0.004,
+    "PPS":    0.007,
+    "PVC":    0.003,
     "PA66_GF30": 0.006,
 }
 
@@ -174,6 +367,30 @@ THERMAL_EXPANSION = {
         "CTE": 80e-6,
         "description": "PA66 dry, 23°C",
     },
+    "ABS": {
+        "CTE": 90e-6,
+        "description": "ABS, 23°C",
+    },
+    "PA66_GF30": {
+        "CTE": 25e-6,
+        "description": "PA66 30% glass-filled, longitudinal, 23°C",
+    },
+    "PEEK_GF30": {
+        "CTE": 22e-6,
+        "description": "PEEK 30% glass-filled, longitudinal, 23°C",
+    },
+    "PPS": {
+        "CTE": 55e-6,
+        "description": "PPS unfilled, 23°C",
+    },
+    "PE_LD": {
+        "CTE": 160e-6,
+        "description": "PE-LD, 23°C",
+    },
+    "PE_HD": {
+        "CTE": 150e-6,
+        "description": "PE-HD, 23°C",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -194,4 +411,5 @@ MATERIAL_DB = [
     {"name": "PEEK",             "flexural_modulus_MPa": 4100, "tensile_modulus_MPa": 3700, "HDT_C": 260, "notched_izod_kJ_m2":  50, "elongation_yield_pct": 30, "FDA_approved": False},
     {"name": "PEEK-GF30",        "flexural_modulus_MPa": 9500, "tensile_modulus_MPa":10000, "HDT_C": 280, "notched_izod_kJ_m2":  40, "elongation_yield_pct":  2, "FDA_approved": False},
     {"name": "PPS",              "flexural_modulus_MPa": 3800, "tensile_modulus_MPa": 3700, "HDT_C": 260, "notched_izod_kJ_m2":  25, "elongation_yield_pct":  2, "FDA_approved": False},
+    {"name": "Rigid PVC",        "flexural_modulus_MPa": 3000, "tensile_modulus_MPa": 3000, "HDT_C":  70, "notched_izod_kJ_m2":   5, "elongation_yield_pct":  3, "FDA_approved": False},
 ]
