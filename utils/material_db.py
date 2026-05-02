@@ -150,6 +150,17 @@ SHRINKAGE_RATES = {
 }
 
 # ---------------------------------------------------------------------------
+# Thermal expansion coefficients [m/(m·°C)] = [1/°C]
+# Linear CTE at 23°C unless noted
+# ---------------------------------------------------------------------------
+THERMAL_EXPANSION = {
+    "PVC": {
+        "CTE": 70e-6,   # linear CTE [1/°C]
+        "description": "Rigid PVC (uPVC), 23°C",
+    },
+}
+
+# ---------------------------------------------------------------------------
 # Material selection database — used by 06_material_selection.ipynb
 # Property keys: flexural_modulus_MPa, tensile_modulus_MPa, HDT_C,
 #                notched_izod_kJ_m2, elongation_yield_pct, FDA_approved
