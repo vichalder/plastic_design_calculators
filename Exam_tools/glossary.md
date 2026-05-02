@@ -15,6 +15,7 @@ Every symbol, term, and abbreviation used in E01–E05.
 | Secant modulus | E_s | Pa (MPa) | Slope of the stress–strain curve from the origin to the operating strain point. Accounts for nonlinearity at large strains. Always use E_s in snap-fit force calculations. |
 | Yield stress | σ_yield | Pa (MPa) | Stress at which permanent deformation begins. Design limit for thermal stress and press-fit initial pressure. |
 | Yield strain | ε_yield | — | Strain at yield point: ε_yield = σ_yield / E. Used to set the allowable snap-fit strain. |
+| Maximal usable strain | ε_max | — | Safe working strain limit to ensure linear viscoelasticity and long-term stability. Derived as ε_yield / SF_strain. For structural Rigid PVC: 0.8% (using SF ≈ 2.5). |
 | Poisson's ratio | ν | — | Ratio of lateral contraction to axial elongation (0 ≤ ν ≤ 0.5). Used in the Lamé press-fit formula. Typical polymer values: 0.35–0.45. |
 | Safety factor | SF | — | SF = limiting value / computed value. SF > 1 means the design passes. |
 | Cross-sectional area | A_cross | m² | For a circular rod: A = π d² / 4. |
