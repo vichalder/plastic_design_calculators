@@ -22,10 +22,17 @@ plastic_design_calculators/
 ├── 06_material_selection.ipynb      # 5-step multi-constraint material filtering
 ├── implementation_plan.md           # Master spec — governing equations, patterns, constraints
 ├── requirements.txt                 # Python dependencies
-└── utils/
-    ├── __init__.py                  # Re-exports all public symbols
-    ├── unit_registry.py             # Shared pint UnitRegistry singleton
-    └── material_db.py               # All material property tables (SI unless noted)
+├── utils/
+│   ├── __init__.py                  # Re-exports all public symbols
+│   ├── unit_registry.py             # Shared pint UnitRegistry singleton
+│   └── material_db.py               # All material property tables (SI unless noted)
+└── Exam_tools/
+    ├── scaffolding.md               # Topic outline and exam scope reference
+    ├── E01_viscoelasticity.ipynb    # BSP creep strain + WLF time-temperature superposition
+    ├── E02_snap_fit.ipynb           # Cantilever snap-fit: strain, Fd, Fa, Fdis
+    ├── E03_press_fit.ipynb          # Lamé press-fit: p(t) and torque decay
+    ├── E04_thermal_expansion.ipynb  # CTE, constrained stress, ΔT_crit
+    └── E05_material_selection.ipynb # 5-step filter + DFM advice
 ```
 
 ---
@@ -146,6 +153,23 @@ result = reattach_units(result_raw, 'N')
 
 Note: `ureg.setup_matplotlib()` is called in `unit_registry.py` — pint-aware axis labels work automatically when you pass Quantities to matplotlib.
 
+#### Critical: `strip_units` always returns SI base units
+
+`strip_units(q)` converts `q` to SI **base** units before extracting the magnitude — it ignores any `.to('hour')` or `.to('mm')` call you made first.
+
+```python
+t = Q_(1000.0, 'hour')
+
+# WRONG — strip_units converts to seconds regardless:
+t_h = strip_units(t.to('hour'))   # → 3_600_000.0  (seconds, not 1000)
+
+# CORRECT — convert to the base unit explicitly, then rescale:
+t_h = strip_units(t.to('second')) / 3600.0   # → 1000.0  (hours)
+t_mm = strip_units(L.to('meter')) * 1000.0   # for mm display
+```
+
+This matters most when passing time to functions that expect **hours** (e.g. `relaxation_modulus_interp`, `wlf_shift_factor` table lookups). Passing seconds disguised as hours silently clamps to the end of the relaxation table and produces wrong results with no error.
+
 ---
 
 ## material_db.py — Data Structures
@@ -216,6 +240,21 @@ FATIGUE_COEFFICIENTS = {
 ### `FRICTION_COEFFICIENTS`
 Static friction, polymer-on-steel: `{"PP_steel": 0.30, ...}`
 
+### `THERMAL_EXPANSION`
+Linear CTE per material: `{"PP": {"CTE": 90e-6, "description": "..."}, ...}`
+
+```python
+THERMAL_EXPANSION = {
+    "PP":   {"CTE": 90e-6,  "description": "PP homopolymer, 23°C, Borealis datasheet"},
+    "POM":  {"CTE": 110e-6, "description": "POM (Delrin 100), 23°C, DuPont datasheet"},
+    "PC":   {"CTE": 65e-6,  "description": "Polycarbonate, 23°C"},
+    "PA66": {"CTE": 80e-6,  "description": "PA66 dry, 23°C"},
+    "PVC":  {"CTE": 70e-6,  "description": "PVC rigid, 23°C"},
+}
+```
+
+CTE is in 1/°C (= 1/K). Retrieve safely with `THERMAL_EXPANSION.get(key, {}).get('CTE', fallback)`.
+
 ### `SHRINKAGE_RATES`
 Volumetric shrinkage (dimensionless): `{"PP": 0.015, ...}`
 
@@ -277,6 +316,66 @@ Follow the existing prefix pattern: `NN_short_description.ipynb` where `NN` is a
 | [04_press_fit.ipynb](04_press_fit.ipynb) | Interference fit | Modified Lamé thick-wall equations, `E_r(t)` interpolation, torque decay over service life |
 | [05_mould_design.ipynb](05_mould_design.ipynb) | Mould DFM | Shrinkage compensation (pvT), draft angle validation, wall uniformity, gate positioning |
 | [06_material_selection.ipynb](06_material_selection.ipynb) | Material selection | Boolean pandas filtering of `MATERIAL_DB`, constraint satisfaction matrix |
+
+---
+
+---
+
+## Exam_tools — Simplified Exam Notebooks
+
+The `Exam_tools/` directory contains a parallel set of **exam-focused** notebooks. They are intentionally lighter than the production notebooks and follow a **3-part structure** instead of the mandatory 5-part structure. Do not apply production conventions to these files.
+
+### When to use Exam_tools vs production notebooks
+
+| Criterion | Production (01–06) | Exam_tools (E01–E05) |
+|-----------|-------------------|----------------------|
+| Output | Plots + tables | Print-only (PDF-safe) |
+| Dependencies | sympy, matplotlib, scipy | numpy + pandas only |
+| Functions | Full docstrings, `**kwargs` | Lean, no kwargs |
+| Time arrays | numpy.logspace + vectorised | Scalar inputs |
+| Structure | 5 parts (mandatory) | 3 parts |
+
+### 3-Part Exam Notebook Structure
+
+**Part 1 — Theory Recap** (Markdown cell)
+- Key formulas in LaTeX
+- Parameter table
+- Common exam pitfalls list
+
+**Part 2 — Problem Inputs** (single editable code cell)
+- All user-editable values, one block
+- `Q_()` quantities for physical inputs
+- Comments describing each variable
+
+**Part 3 — Functions + Execution + Validation** (3 code cells)
+- Lean helper functions (no docstrings beyond a one-liner)
+- Sequential execution that prints each intermediate value
+- Structured PASS/FAIL validation at end
+
+### Exam_tools print format convention
+
+```python
+print(f"  {'Label string':<30}: {value}")  # 2-space indent, 30-char label
+print("--- VALIDATION ---")                # section headers in "--- X ---" style
+```
+
+### Exam_tools notebooks summary
+
+| File | Topic | Key output |
+|------|-------|------------|
+| E01_viscoelasticity.ipynb | BSP + WLF time-temperature superposition | ε(t) per BSP step, t_eff at reference T |
+| E02_snap_fit.ipynb | Cantilever beam strain, Fd, Fa, Fdis | Strain margin, assembly/disassembly forces, β_lock |
+| E03_press_fit.ipynb | Lamé + E_r(t) log-log interp, torque decay | p(t), Mt(t) at service life, torque margin |
+| E04_thermal_expansion.ipynb | CTE, constrained stress, ΔT_crit | σ_thermal, F_constraint, safety factor |
+| E05_material_selection.ipynb | 5-step filter + DFM advice | Pandas boolean AND filter, draft/shrinkage advice |
+
+### Adding a new exam notebook
+
+1. Name it `Exam_tools/E<NN>_<topic>.ipynb` following the existing sequence.
+2. Follow the 3-part structure above — no sympy, no matplotlib.
+3. Pull all material constants from `utils.material_db` (same import path as production notebooks).
+4. Keep each notebook under ~150 lines of code.
+5. Test by running `jupyter nbconvert --to notebook --execute --inplace E<NN>_<topic>.ipynb` from `Exam_tools/`.
 
 ---
 
@@ -359,6 +458,12 @@ Provide exactly 6 time points spanning 0.01 h to 10 000 h:
     "T_ref": 200.0,    # reference temperature [°C]
     "description": "PEI, Tref=200°C",
 },
+```
+
+### `THERMAL_EXPANSION` (for thermal expansion notebook)
+
+```python
+"PEI": {"CTE": 55e-6, "description": "PEI, 23°C"},
 ```
 
 ### `SHRINKAGE_RATES`

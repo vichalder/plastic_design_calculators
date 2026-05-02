@@ -158,6 +158,22 @@ THERMAL_EXPANSION = {
         "CTE": 70e-6,   # linear CTE [1/°C]
         "description": "Rigid PVC (uPVC), 23°C",
     },
+    "PP": {
+        "CTE": 90e-6,
+        "description": "PP homopolymer, 23°C, Borealis datasheet",
+    },
+    "POM": {
+        "CTE": 110e-6,
+        "description": "POM (Delrin 100), 23°C, DuPont datasheet",
+    },
+    "PC": {
+        "CTE": 65e-6,
+        "description": "Polycarbonate, 23°C",
+    },
+    "PA66": {
+        "CTE": 80e-6,
+        "description": "PA66 dry, 23°C",
+    },
 }
 
 # ---------------------------------------------------------------------------
