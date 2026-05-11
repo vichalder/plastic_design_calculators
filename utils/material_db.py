@@ -403,7 +403,7 @@ MATERIAL_DB = [
     {"name": "PP copolymer",     "flexural_modulus_MPa":  900, "tensile_modulus_MPa":  900, "HDT_C":  80, "notched_izod_kJ_m2":  50, "elongation_yield_pct": 20, "FDA_approved": True},
     {"name": "PE-HD",            "flexural_modulus_MPa":  900, "tensile_modulus_MPa":  800, "HDT_C":  80, "notched_izod_kJ_m2":  60, "elongation_yield_pct": 20, "FDA_approved": True},
     {"name": "PE-LD",            "flexural_modulus_MPa":  200, "tensile_modulus_MPa":  200, "HDT_C":  45, "notched_izod_kJ_m2": 100, "elongation_yield_pct": 30, "FDA_approved": True},
-    {"name": "POM (Delrin)",     "flexural_modulus_MPa": 2600, "tensile_modulus_MPa": 2800, "HDT_C": 110, "notched_izod_kJ_m2":  65, "elongation_yield_pct": 15, "FDA_approved": False},
+    {"name": "POM",              "flexural_modulus_MPa": 2600, "tensile_modulus_MPa": 2800, "HDT_C": 110, "notched_izod_kJ_m2":  65, "elongation_yield_pct": 15, "FDA_approved": False},
     {"name": "PC",               "flexural_modulus_MPa": 2300, "tensile_modulus_MPa": 2300, "HDT_C": 130, "notched_izod_kJ_m2":  70, "elongation_yield_pct":  6, "FDA_approved": True},
     {"name": "ABS",              "flexural_modulus_MPa": 2200, "tensile_modulus_MPa": 2000, "HDT_C":  95, "notched_izod_kJ_m2":  20, "elongation_yield_pct":  5, "FDA_approved": False},
     {"name": "PA66 dry",         "flexural_modulus_MPa": 2800, "tensile_modulus_MPa": 3000, "HDT_C": 200, "notched_izod_kJ_m2":  50, "elongation_yield_pct":  5, "FDA_approved": True},

@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plastic Design Calculators</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #1a1d21;
+    --surface: #23272e;
+    --border:  #343a45;
+    --text:    #d4d8e1;
+    --muted:   #8a8f9d;
+    --accent:  #4e9eff;
+    --pass:    #3fb950;
+    --fail:    #f85149;
+    --warn:    #d29922;
+    --font:    'Consolas', 'Menlo', 'Monaco', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 24px 16px 48px;
+    line-height: 1.5;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 18px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px 18px;
+  }
+  .card-full { grid-column: 1 / -1; }
+
+  .card h2 {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .formula {
+    background: #0d1117;
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: #a5d6ff;
+    font-size: 12px;
+    margin-bottom: 14px;
+    white-space: pre-wrap;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  label {
+    color: var(--muted);
+    min-width: 90px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  input[type="number"], select {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 4px 8px;
+    width: 110px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="number"]:focus, select:focus { border-color: var(--accent); }
+  select { width: auto; max-width: 220px; }
+
+  .unit { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+
+  .result-block {
+    margin-top: 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .result-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .result-label { color: var(--muted); font-size: 12px; min-width: 130px; }
+  .result-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text);
+    min-width: 80px;
+  }
+  .result-unit { color: var(--muted); font-size: 11px; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+  }
+  .badge-pass { background: #1a3a22; color: var(--pass); border: 1px solid var(--pass); }
+  .badge-fail { background: #3a1a1a; color: var(--fail); border: 1px solid var(--fail); }
+  .badge-warn { background: #3a2e12; color: var(--warn); border: 1px solid var(--warn); }
+  .badge-none { color: var(--muted); }
+
+  .toggle-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    width: fit-content;
+  }
+  .toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 12px;
+    padding: 4px 14px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .toggle-btn.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* Unit converter table */
+  .conv-table { width: 100%; border-collapse: collapse; }
+  .conv-table th {
+    color: var(--muted);
+    font-size: 11px;
+    text-align: left;
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.06em;
+  }
+  .conv-table td { padding: 5px 6px; vertical-align: middle; }
+  .conv-table tr + tr td { border-top: 1px solid #2a2f38; }
+  .conv-cat { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .conv-table input[type="number"] { width: 100px; }
+  .conv-arrow { color: var(--muted); padding: 0 4px; }
+
+  hr.sep { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<h1>PLASTIC DESIGN CALCULATORS</h1>
+<div class="subtitle">Quick-reference for viscoelastic polymer design — open in browser, no server needed</div>
+
+<div class="grid">
+
+  <!-- ═══ 1. LIVING HINGE ═══ -->
+  <div class="card">
+    <h2>1 · Living Hinge — Length &amp; Thickness</h2>
+    <div class="formula">L = (θ / 180) · π · R      [L = πR for 180°]
+T_range = H/8  to  H/5</div>
+
+    <div class="row">
+      <label>Flex angle θ</label>
+      <input type="number" id="lh-theta" value="180" min="1" max="360" oninput="calcLH()">
+      <span class="unit">°</span>
+    </div>
+    <div class="row">
+      <label>Bend radius R</label>
+      <input type="number" id="lh-r" value="1.0" step="0.1" min="0.1" oninput="calcLH()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Wall thickness H</label>
+      <input type="number" id="lh-h" value="2.0" step="0.1" min="0.1" oninput="calcLH()">
+      <span class="unit">mm</span>
+    </div>
+
+    <div class="result-block">
+      <div class="result-row">
+        <span class="result-label">Hinge length L</span>
+        <span class="result-value" id="lh-L">—</span>
+        <span class="result-unit">mm</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Thickness range T</span>
+        <span class="result-value" id="lh-T">—</span>
+        <span class="result-unit">mm</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Empirical limit</span>
+        <span class="result-value" style="font-size:12px;color:var(--muted)">0.20 – 0.50 mm</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 2. SNAP-FIT STRAIN ═══ -->
+  <div class="card">
+    <h2>2 · Snap-Fit — Peak Root Strain</h2>
+    <div class="formula">ε = 1.5 · t · Y / (L² · Q)
+ε_allow = 0.6 · 0.7 · ε_yield  (repeated asm.)</div>
+
+    <div class="row">
+      <label>Beam length L</label>
+      <input type="number" id="sf-L" value="20" step="0.5" min="0.1" oninput="calcSF()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Root thickness t</label>
+      <input type="number" id="sf-t" value="2" step="0.1" min="0.1" oninput="calcSF()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Deflection Y</label>
+      <input type="number" id="sf-Y" value="1.5" step="0.1" min="0" oninput="calcSF()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Q factor</label>
+      <input type="number" id="sf-Q" value="1" step="0.1" min="0.1" oninput="calcSF()">
+      <span class="unit">(1 = rigid wall)</span>
+    </div>
+    <div class="row">
+      <label>ε_yield material</label>
+      <input type="number" id="sf-ey" value="6" step="0.5" min="0.1" oninput="calcSF()">
+      <span class="unit">%  (e.g. POM≈6%, PP≈8%)</span>
+    </div>
+
+    <div class="result-block">
+      <div class="result-row">
+        <span class="result-label">Peak strain ε</span>
+        <span class="result-value" id="sf-eps">—</span>
+        <span class="result-unit">%</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Allowable ε</span>
+        <span class="result-value" id="sf-allow">—</span>
+        <span class="result-unit">%</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Assessment</span>
+        <span id="sf-badge" class="badge badge-none">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 3. SNAP-FIT FORCE ═══ -->
+  <div class="card">
+    <h2>3 · Snap-Fit — Assembly / Disassembly Force</h2>
+    <div class="formula">P = b·t²·E·ε / (6·L)
+W = P · (μ + tan α) / (1 − μ·tan α)</div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="sf2-btn-asm" onclick="sf2Toggle('asm')">Assembly (α)</button>
+      <button class="toggle-btn" id="sf2-btn-dis" onclick="sf2Toggle('dis')">Disassembly (β)</button>
+    </div>
+
+    <div class="row">
+      <label>Beam width b</label>
+      <input type="number" id="sf2-b" value="10" step="0.5" min="0.1" oninput="calcSF2()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Root thickness t</label>
+      <input type="number" id="sf2-t" value="2" step="0.1" min="0.1" oninput="calcSF2()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Secant modulus E</label>
+      <input type="number" id="sf2-E" value="2800" step="100" min="1" oninput="calcSF2()">
+      <span class="unit">MPa</span>
+    </div>
+    <div class="row">
+      <label>Strain ε</label>
+      <input type="number" id="sf2-eps" value="3" step="0.1" min="0" oninput="calcSF2()">
+      <span class="unit">%</span>
+    </div>
+    <div class="row">
+      <label>Beam length L</label>
+      <input type="number" id="sf2-L" value="20" step="0.5" min="0.1" oninput="calcSF2()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Friction μ</label>
+      <input type="number" id="sf2-mu" value="0.35" step="0.01" min="0" max="1" oninput="calcSF2()">
+    </div>
+    <div class="row">
+      <label id="sf2-angle-lbl">Lead angle α</label>
+      <input type="number" id="sf2-angle" value="30" step="1" min="0" max="89" oninput="calcSF2()">
+      <span class="unit">°</span>
+    </div>
+
+    <div class="result-block">
+      <div class="result-row">
+        <span class="result-label">Deflection force P</span>
+        <span class="result-value" id="sf2-P">—</span>
+        <span class="result-unit">N</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Mating force W</span>
+        <span class="result-value" id="sf2-W">—</span>
+        <span class="result-unit">N</span>
+      </div>
+      <div id="sf2-lock-warn" style="display:none;margin-top:6px;">
+        <span class="badge badge-pass">PERMANENT LOCK — denominator → 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 4. PRESS-FIT ═══ -->
+  <div class="card">
+    <h2>4 · Press-Fit — Geometry Factor &amp; Pressure</h2>
+    <div class="formula">A = (1 + (D₁/D₂)²) / (1 − (D₁/D₂)²)
+p = (δ/D₁) · E_r / (A + ν)</div>
+
+    <div class="row">
+      <label>Shaft D₁</label>
+      <input type="number" id="pf-D1" value="20" step="0.1" min="0.1" oninput="calcPF()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Hub outer D₂</label>
+      <input type="number" id="pf-D2" value="36" step="0.1" min="0.1" oninput="calcPF()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Interference δ</label>
+      <input type="number" id="pf-delta" value="0.1" step="0.01" min="0" oninput="calcPF()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>E_r(t)</label>
+      <input type="number" id="pf-Er" value="1200" step="100" min="1" oninput="calcPF()">
+      <span class="unit">MPa  (relaxed, from table)</span>
+    </div>
+    <div class="row">
+      <label>Poisson ν</label>
+      <input type="number" id="pf-nu" value="0.38" step="0.01" min="0" max="0.5" oninput="calcPF()">
+    </div>
+    <div class="row">
+      <label>Hub length L</label>
+      <input type="number" id="pf-L" value="15" step="0.5" min="0.1" oninput="calcPF()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Friction μ</label>
+      <input type="number" id="pf-mu" value="0.15" step="0.01" min="0" oninput="calcPF()">
+    </div>
+
+    <div class="result-block">
+      <div class="result-row">
+        <span class="result-label">Geometry factor A</span>
+        <span class="result-value" id="pf-A">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Relative interference</span>
+        <span class="result-value" id="pf-rel">—</span>
+        <span class="result-unit">%  (limit: ≤3% unfilled, ≤1% GF)</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Contact pressure p</span>
+        <span class="result-value" id="pf-p">—</span>
+        <span class="result-unit">MPa</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Torque capacity Mₜ</span>
+        <span class="result-value" id="pf-Mt">—</span>
+        <span class="result-unit">N·mm</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 5. SHRINKAGE ═══ -->
+  <div class="card">
+    <h2>5 · Shrinkage Compensation</h2>
+    <div class="formula">M_d = P_d / (1 − S_r)</div>
+
+    <div class="row">
+      <label>Material</label>
+      <select id="sh-mat" onchange="shPreset()">
+        <option value="custom">Custom</option>
+        <option value="1.5">PP — 1.5%</option>
+        <option value="1.7">POM — 1.7%</option>
+        <option value="0.6">PC — 0.6%</option>
+        <option value="1.5b">PA66 — 1.5%</option>
+        <option value="2.5">PE — 2.5%</option>
+        <option value="0.5">PVC rigid — 0.5%</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>Part dim. P_d</label>
+      <input type="number" id="sh-Pd" value="100" step="0.1" min="0.01" oninput="calcSH()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>Shrinkage S_r</label>
+      <input type="number" id="sh-Sr" value="1.5" step="0.05" min="0" max="10" oninput="calcSH()">
+      <span class="unit">%</span>
+    </div>
+
+    <div class="result-block">
+      <div class="result-row">
+        <span class="result-label">Tool dimension M_d</span>
+        <span class="result-value" id="sh-Md">—</span>
+        <span class="result-unit">mm</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Oversize Δ</span>
+        <span class="result-value" id="sh-delta">—</span>
+        <span class="result-unit">mm</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 6. THERMAL EXPANSION ═══ -->
+  <div class="card">
+    <h2>6 · Thermal Expansion</h2>
+    <div class="formula">ΔL = L · α · ΔT
+σ = E · α · ΔT  (constrained)</div>
+
+    <div class="row">
+      <label>Material</label>
+      <select id="th-mat" onchange="thPreset()">
+        <option value="custom">Custom</option>
+        <option value="90">PP — 90 µm/m·°C</option>
+        <option value="110">POM — 110 µm/m·°C</option>
+        <option value="65">PC — 65 µm/m·°C</option>
+        <option value="80">PA66 — 80 µm/m·°C</option>
+        <option value="70">PVC — 70 µm/m·°C</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>Length L</label>
+      <input type="number" id="th-L" value="200" step="1" min="0.1" oninput="calcTH()">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <label>CTE α</label>
+      <input type="number" id="th-alpha" value="90" step="1" min="0" oninput="calcTH()">
+      <span class="unit">µm/m·°C</span>
+    </div>
+    <div class="row">
+      <label>Temp. change ΔT</label>
+      <input type="number" id="th-dT" value="40" step="1" oninput="calcTH()">
+      <span class="unit">°C</span>
+    </div>
+    <div class="row">
+      <label>Modulus E</label>
+      <input type="number" id="th-E" value="1300" step="100" min="0" oninput="calcTH()">
+      <span class="unit">MPa  (leave 0 to skip σ)</span>
+    </div>
+
+    <div class="result-block">
+      <div class="result-row">
+        <span class="result-label">Expansion ΔL</span>
+        <span class="result-value" id="th-dL">—</span>
+        <span class="result-unit">mm</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Thermal strain ε</span>
+        <span class="result-value" id="th-eps">—</span>
+        <span class="result-unit">%</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Constrained stress σ</span>
+        <span class="result-value" id="th-sig">—</span>
+        <span class="result-unit">MPa</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 7. WLF ═══ -->
+  <div class="card">
+    <h2>7 · WLF Time-Temperature Shift Factor</h2>
+    <div class="formula">log(a_T) = −C₁·(T − T_ref) / (C₂ + (T − T_ref))</div>
+
+    <div class="row">
+      <label>Preset</label>
+      <select id="wlf-pre" onchange="wlfPreset()">
+        <option value="custom">Custom</option>
+        <option value="pc145">PC_145  (C1=22.87, C2=78.09, Tref=145°C)</option>
+        <option value="pp23">PP_23   (C1=8.86,  C2=101.6, Tref=23°C)</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>Temperature T</label>
+      <input type="number" id="wlf-T" value="60" step="1" oninput="calcWLF()">
+      <span class="unit">°C</span>
+    </div>
+    <div class="row">
+      <label>T_ref</label>
+      <input type="number" id="wlf-Tref" value="23" step="1" oninput="calcWLF()">
+      <span class="unit">°C</span>
+    </div>
+    <div class="row">
+      <label>C₁</label>
+      <input type="number" id="wlf-C1" value="8.86" step="0.01" min="0" oninput="calcWLF()">
+    </div>
+    <div class="row">
+      <label>C₂</label>
+      <input type="number" id="wlf-C2" value="101.6" step="0.1" min="0" oninput="calcWLF()">
+    </div>
+
+    <div class="result-block">
+      <div class="result-row">
+        <span class="result-label">log₁₀(a_T)</span>
+        <span class="result-value" id="wlf-log">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">a_T</span>
+        <span class="result-value" id="wlf-aT">—</span>
+      </div>
+      <div class="result-row" style="margin-top:4px;">
+        <span class="result-label" style="color:var(--muted);font-size:11px;">a_T &lt; 1 → time accelerates (T &gt; T_ref)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 8. UNIT CONVERTERS ═══ -->
+  <div class="card card-full">
+    <h2>8 · Unit Converters</h2>
+    <table class="conv-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th colspan="5">Convert</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- Pressure -->
+        <tr>
+          <td class="conv-cat">Pressure</td>
+          <td><input type="number" id="cv-Pa" placeholder="Pa" oninput="cvPress('Pa')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-MPa" placeholder="MPa" oninput="cvPress('MPa')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-GPa" placeholder="GPa" oninput="cvPress('GPa')"></td>
+        </tr>
+
+        <!-- Strain -->
+        <tr>
+          <td class="conv-cat">Strain</td>
+          <td><input type="number" id="cv-sdec" placeholder="decimal" step="0.001" oninput="cvStrain('dec')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-spct" placeholder="%" oninput="cvStrain('pct')"></td>
+          <td></td><td></td>
+        </tr>
+
+        <!-- Time -->
+        <tr>
+          <td class="conv-cat">Time</td>
+          <td><input type="number" id="cv-sec" placeholder="seconds" oninput="cvTime('sec')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-hr" placeholder="hours" oninput="cvTime('hr')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-yr" placeholder="years" oninput="cvTime('yr')"></td>
+        </tr>
+
+        <!-- Temperature -->
+        <tr>
+          <td class="conv-cat">Temperature</td>
+          <td><input type="number" id="cv-degC" placeholder="°C" oninput="cvTemp('C')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-K" placeholder="K" oninput="cvTemp('K')"></td>
+          <td></td><td></td>
+        </tr>
+
+        <!-- Length -->
+        <tr>
+          <td class="conv-cat">Length</td>
+          <td><input type="number" id="cv-mm" placeholder="mm" oninput="cvLen('mm')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-m" placeholder="m" oninput="cvLen('m')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-in" placeholder="inch" oninput="cvLen('in')"></td>
+        </tr>
+
+        <!-- ── MECHANICS ── -->
+        <tr><td colspan="6" style="padding:10px 6px 4px;color:var(--muted);font-size:10px;letter-spacing:0.1em;border-top:1px solid var(--border)">MECHANICS</td></tr>
+
+        <!-- Torque -->
+        <tr>
+          <td class="conv-cat">Torque</td>
+          <td><input type="number" id="cv-Nmm" placeholder="N·mm" oninput="cvTorque('Nmm')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-Nm" placeholder="N·m" oninput="cvTorque('Nm')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-lbfin" placeholder="lbf·in" oninput="cvTorque('lbfin')"></td>
+        </tr>
+
+        <!-- Force -->
+        <tr>
+          <td class="conv-cat">Force</td>
+          <td><input type="number" id="cv-N" placeholder="N" oninput="cvForce('N')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-kN" placeholder="kN" oninput="cvForce('kN')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-lbf" placeholder="lbf" oninput="cvForce('lbf')"></td>
+        </tr>
+
+        <!-- Angle -->
+        <tr>
+          <td class="conv-cat">Angle</td>
+          <td><input type="number" id="cv-deg" placeholder="degrees" oninput="cvAngle('deg')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-rad" placeholder="radians" oninput="cvAngle('rad')"></td>
+          <td></td><td></td>
+        </tr>
+
+        <!-- Area -->
+        <tr>
+          <td class="conv-cat">Area</td>
+          <td><input type="number" id="cv-mm2" placeholder="mm²" oninput="cvArea('mm2')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-cm2" placeholder="cm²" oninput="cvArea('cm2')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-in2" placeholder="in²" oninput="cvArea('in2')"></td>
+        </tr>
+
+        <!-- 2nd Moment of Area -->
+        <tr>
+          <td class="conv-cat">2nd Mom. I</td>
+          <td><input type="number" id="cv-mm4" placeholder="mm⁴" oninput="cvI('mm4')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-cm4" placeholder="cm⁴" oninput="cvI('cm4')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-in4" placeholder="in⁴" oninput="cvI('in4')"></td>
+        </tr>
+
+        <!-- ── MATERIALS ── -->
+        <tr><td colspan="6" style="padding:10px 6px 4px;color:var(--muted);font-size:10px;letter-spacing:0.1em;border-top:1px solid var(--border)">MATERIALS</td></tr>
+
+        <!-- Density -->
+        <tr>
+          <td class="conv-cat">Density</td>
+          <td><input type="number" id="cv-gcm3" placeholder="g/cm³" oninput="cvDens('gcm3')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-kgm3" placeholder="kg/m³" oninput="cvDens('kgm3')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-lbin3" placeholder="lb/in³" oninput="cvDens('lbin3')"></td>
+        </tr>
+
+        <!-- Impact strength -->
+        <tr>
+          <td class="conv-cat">Impact str.</td>
+          <td><input type="number" id="cv-kJm2" placeholder="kJ/m²" oninput="cvImpact('kJm2')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-Jm2" placeholder="J/m²" oninput="cvImpact('Jm2')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-ftlbfin2" placeholder="ft·lbf/in²" oninput="cvImpact('ftlbfin2')"></td>
+        </tr>
+
+        <!-- CTE -->
+        <tr>
+          <td class="conv-cat">CTE</td>
+          <td><input type="number" id="cv-umm_C" placeholder="µm/m·°C" oninput="cvCTE('C')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-uinin_F" placeholder="µin/in·°F" oninput="cvCTE('F')"></td>
+          <td></td><td></td>
+        </tr>
+
+        <!-- Mass -->
+        <tr>
+          <td class="conv-cat">Mass</td>
+          <td><input type="number" id="cv-g" placeholder="g" oninput="cvMass('g')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-kg" placeholder="kg" oninput="cvMass('kg')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-lb" placeholder="lb" oninput="cvMass('lb')"></td>
+        </tr>
+
+        <!-- Energy -->
+        <tr>
+          <td class="conv-cat">Energy</td>
+          <td><input type="number" id="cv-mJ" placeholder="mJ" oninput="cvEnergy('mJ')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-J" placeholder="J" oninput="cvEnergy('J')"></td>
+          <td class="conv-arrow">↔</td>
+          <td><input type="number" id="cv-ftlbf" placeholder="ft·lbf" oninput="cvEnergy('ftlbf')"></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /grid -->
+
+<script>
+/* ─── helpers ─── */
+const $ = id => document.getElementById(id);
+const num = id => parseFloat($(id).value);
+const fmt = (v, d=4) => isNaN(v) || !isFinite(v) ? '—' : +v.toPrecision(d);
+const setVal = (id, v, d=4) => { $(id).textContent = fmt(v, d); };
+
+/* ─── 1. Living Hinge ─── */
+function calcLH() {
+  const theta = num('lh-theta'), R = num('lh-r'), H = num('lh-h');
+  const L = (theta / 180) * Math.PI * R;
+  const Tlo = H / 8, Thi = H / 5;
+  setVal('lh-L', L, 4);
+  $('lh-T').textContent = (isNaN(Tlo)||isNaN(Thi)) ? '—' :
+    `${fmt(Tlo,3)} – ${fmt(Thi,3)}`;
+}
+
+/* ─── 2. Snap-Fit Strain ─── */
+function calcSF() {
+  const L = num('sf-L'), t = num('sf-t'), Y = num('sf-Y'),
+        Q = num('sf-Q'), ey = num('sf-ey');
+  const eps = 1.5 * t * Y / (L * L * Q) * 100; // in %
+  const allow = 0.6 * 0.7 * ey;
+  setVal('sf-eps', eps, 4);
+  setVal('sf-allow', allow, 3);
+  const badge = $('sf-badge');
+  if (isNaN(eps)) { badge.className='badge badge-none'; badge.textContent='—'; return; }
+  if (eps <= allow) { badge.className='badge badge-pass'; badge.textContent='PASS'; }
+  else              { badge.className='badge badge-fail'; badge.textContent='FAIL'; }
+}
+
+/* ─── 3. Snap-Fit Force ─── */
+let sf2Mode = 'asm';
+function sf2Toggle(m) {
+  sf2Mode = m;
+  $('sf2-btn-asm').className = 'toggle-btn' + (m==='asm'?' active':'');
+  $('sf2-btn-dis').className = 'toggle-btn' + (m==='dis'?' active':'');
+  $('sf2-angle-lbl').textContent = m==='asm' ? 'Lead angle α' : 'Return angle β';
+  calcSF2();
+}
+function calcSF2() {
+  const b=num('sf2-b'), t=num('sf2-t'), E=num('sf2-E'),
+        eps=num('sf2-eps')/100, L=num('sf2-L'),
+        mu=num('sf2-mu'), ang=num('sf2-angle') * Math.PI/180;
+  const P = (b * t*t * E * eps) / (6 * L);   // N (E in MPa, dims in mm → N)
+  const tanA = Math.tan(ang);
+  const denom = 1 - mu * tanA;
+  const lockWarn = $('sf2-lock-warn');
+  if (Math.abs(denom) < 0.01) {
+    setVal('sf2-P', P, 4);
+    $('sf2-W').textContent = '∞';
+    lockWarn.style.display = '';
+    return;
+  }
+  lockWarn.style.display = 'none';
+  const W = P * (mu + tanA) / denom;
+  setVal('sf2-P', P, 4);
+  setVal('sf2-W', W, 4);
+}
+
+/* ─── 4. Press-Fit ─── */
+function calcPF() {
+  const D1=num('pf-D1'), D2=num('pf-D2'), delta=num('pf-delta'),
+        Er=num('pf-Er'), nu=num('pf-nu'), L=num('pf-L'), mu=num('pf-mu');
+  if (D2 <= D1) { ['pf-A','pf-rel','pf-p','pf-Mt'].forEach(id=>$(id).textContent='—'); return; }
+  const ratio = D1/D2;
+  const A = (1 + ratio*ratio) / (1 - ratio*ratio);
+  const rel = (delta / D1) * 100;
+  const p = (delta / D1) * Er / (A + nu);   // MPa
+  const Mt = (Math.PI / 2) * D1*D1 * L * p * mu; // N·mm
+  setVal('pf-A', A, 4);
+  setVal('pf-rel', rel, 3);
+  setVal('pf-p', p, 4);
+  setVal('pf-Mt', Mt, 5);
+}
+
+/* ─── 5. Shrinkage ─── */
+function shPreset() {
+  const v = $('sh-mat').value;
+  if (v === 'custom') return;
+  $('sh-Sr').value = parseFloat(v);
+  calcSH();
+}
+function calcSH() {
+  const Pd=num('sh-Pd'), Sr=num('sh-Sr')/100;
+  const Md = Pd / (1 - Sr);
+  setVal('sh-Md', Md, 6);
+  setVal('sh-delta', Md - Pd, 4);
+}
+
+/* ─── 6. Thermal ─── */
+function thPreset() {
+  const v = $('th-mat').value;
+  if (v === 'custom') return;
+  $('th-alpha').value = parseFloat(v);
+  calcTH();
+}
+function calcTH() {
+  const L=num('th-L'), alpha=num('th-alpha')*1e-6, dT=num('th-dT'), E=num('th-E');
+  const dL = L * alpha * dT;
+  const eps = alpha * dT * 100;
+  const sig = E > 0 ? E * alpha * dT : NaN;
+  setVal('th-dL', dL, 4);
+  setVal('th-eps', eps, 4);
+  $('th-sig').textContent = (E > 0 && !isNaN(sig)) ? fmt(sig, 4) : '—';
+}
+
+/* ─── 7. WLF ─── */
+function wlfPreset() {
+  const v = $('wlf-pre').value;
+  if (v==='pc145') { $('wlf-C1').value=22.87; $('wlf-C2').value=78.09; $('wlf-Tref').value=145; }
+  if (v==='pp23')  { $('wlf-C1').value=8.86;  $('wlf-C2').value=101.6; $('wlf-Tref').value=23; }
+  calcWLF();
+}
+function calcWLF() {
+  const T=num('wlf-T'), Tref=num('wlf-Tref'), C1=num('wlf-C1'), C2=num('wlf-C2');
+  const dT = T - Tref;
+  const denom = C2 + dT;
+  if (Math.abs(denom) < 1e-9) { $('wlf-log').textContent='—'; $('wlf-aT').textContent='—'; return; }
+  const logaT = -C1 * dT / denom;
+  const aT = Math.pow(10, logaT);
+  setVal('wlf-log', logaT, 5);
+  setVal('wlf-aT', aT, 5);
+}
+
+/* ─── 8. Unit converters ─── */
+function cvPress(src) {
+  let Pa;
+  if (src==='Pa')  Pa = num('cv-Pa');
+  if (src==='MPa') Pa = num('cv-MPa') * 1e6;
+  if (src==='GPa') Pa = num('cv-GPa') * 1e9;
+  if (src!=='Pa')  $('cv-Pa').value  = +Pa.toPrecision(6);
+  if (src!=='MPa') $('cv-MPa').value = +(Pa/1e6).toPrecision(6);
+  if (src!=='GPa') $('cv-GPa').value = +(Pa/1e9).toPrecision(6);
+}
+function cvStrain(src) {
+  if (src==='dec') $('cv-spct').value = +(num('cv-sdec')*100).toPrecision(5);
+  else             $('cv-sdec').value = +(num('cv-spct')/100).toPrecision(5);
+}
+function cvTime(src) {
+  let sec;
+  if (src==='sec') sec = num('cv-sec');
+  if (src==='hr')  sec = num('cv-hr')  * 3600;
+  if (src==='yr')  sec = num('cv-yr')  * 3600 * 8760;
+  if (src!=='sec') $('cv-sec').value = +sec.toPrecision(6);
+  if (src!=='hr')  $('cv-hr').value  = +(sec/3600).toPrecision(6);
+  if (src!=='yr')  $('cv-yr').value  = +(sec/(3600*8760)).toPrecision(6);
+}
+function cvTemp(src) {
+  if (src==='C') $('cv-K').value    = +(num('cv-degC') + 273.15).toPrecision(6);
+  else           $('cv-degC').value = +(num('cv-K')    - 273.15).toPrecision(6);
+}
+function cvLen(src) {
+  let mm;
+  if (src==='mm') mm = num('cv-mm');
+  if (src==='m')  mm = num('cv-m') * 1000;
+  if (src==='in') mm = num('cv-in') * 25.4;
+  if (src!=='mm') $('cv-mm').value = +mm.toPrecision(6);
+  if (src!=='m')  $('cv-m').value  = +(mm/1000).toPrecision(6);
+  if (src!=='in') $('cv-in').value = +(mm/25.4).toPrecision(6);
+}
+
+function cvTorque(src) {
+  // base: N·mm; 1 N·m = 1000 N·mm; 1 lbf·in = 112.985 N·mm
+  let Nmm;
+  if (src==='Nmm')   Nmm = num('cv-Nmm');
+  if (src==='Nm')    Nmm = num('cv-Nm')    * 1000;
+  if (src==='lbfin') Nmm = num('cv-lbfin') * 112.985;
+  if (src!=='Nmm')   $('cv-Nmm').value   = +Nmm.toPrecision(6);
+  if (src!=='Nm')    $('cv-Nm').value    = +(Nmm/1000).toPrecision(6);
+  if (src!=='lbfin') $('cv-lbfin').value = +(Nmm/112.985).toPrecision(6);
+}
+function cvForce(src) {
+  // base: N; 1 kN = 1000 N; 1 lbf = 4.44822 N
+  let N;
+  if (src==='N')   N = num('cv-N');
+  if (src==='kN')  N = num('cv-kN')  * 1000;
+  if (src==='lbf') N = num('cv-lbf') * 4.44822;
+  if (src!=='N')   $('cv-N').value   = +N.toPrecision(6);
+  if (src!=='kN')  $('cv-kN').value  = +(N/1000).toPrecision(6);
+  if (src!=='lbf') $('cv-lbf').value = +(N/4.44822).toPrecision(6);
+}
+function cvAngle(src) {
+  if (src==='deg') $('cv-rad').value = +(num('cv-deg') * Math.PI/180).toPrecision(6);
+  else             $('cv-deg').value = +(num('cv-rad') * 180/Math.PI).toPrecision(6);
+}
+function cvArea(src) {
+  // base: mm²; 1 cm² = 100 mm²; 1 in² = 645.16 mm²
+  let mm2;
+  if (src==='mm2') mm2 = num('cv-mm2');
+  if (src==='cm2') mm2 = num('cv-cm2') * 100;
+  if (src==='in2') mm2 = num('cv-in2') * 645.16;
+  if (src!=='mm2') $('cv-mm2').value = +mm2.toPrecision(6);
+  if (src!=='cm2') $('cv-cm2').value = +(mm2/100).toPrecision(6);
+  if (src!=='in2') $('cv-in2').value = +(mm2/645.16).toPrecision(6);
+}
+function cvI(src) {
+  // base: mm⁴; 1 cm⁴ = 10 000 mm⁴; 1 in⁴ = 416 231.4 mm⁴
+  let mm4;
+  if (src==='mm4') mm4 = num('cv-mm4');
+  if (src==='cm4') mm4 = num('cv-cm4') * 1e4;
+  if (src==='in4') mm4 = num('cv-in4') * 416231.4;
+  if (src!=='mm4') $('cv-mm4').value = +mm4.toPrecision(6);
+  if (src!=='cm4') $('cv-cm4').value = +(mm4/1e4).toPrecision(6);
+  if (src!=='in4') $('cv-in4').value = +(mm4/416231.4).toPrecision(6);
+}
+function cvDens(src) {
+  // base: kg/m³; 1 g/cm³ = 1000 kg/m³; 1 lb/in³ = 27 679.9 kg/m³
+  let kgm3;
+  if (src==='gcm3')  kgm3 = num('cv-gcm3')  * 1000;
+  if (src==='kgm3')  kgm3 = num('cv-kgm3');
+  if (src==='lbin3') kgm3 = num('cv-lbin3') * 27679.9;
+  if (src!=='gcm3')  $('cv-gcm3').value  = +(kgm3/1000).toPrecision(6);
+  if (src!=='kgm3')  $('cv-kgm3').value  = +kgm3.toPrecision(6);
+  if (src!=='lbin3') $('cv-lbin3').value = +(kgm3/27679.9).toPrecision(6);
+}
+function cvImpact(src) {
+  // base: J/m²; 1 kJ/m² = 1000 J/m²; 1 ft·lbf/in² = 2101.52 J/m²
+  let Jm2;
+  if (src==='kJm2')     Jm2 = num('cv-kJm2')     * 1000;
+  if (src==='Jm2')      Jm2 = num('cv-Jm2');
+  if (src==='ftlbfin2') Jm2 = num('cv-ftlbfin2') * 2101.52;
+  if (src!=='kJm2')     $('cv-kJm2').value     = +(Jm2/1000).toPrecision(6);
+  if (src!=='Jm2')      $('cv-Jm2').value      = +Jm2.toPrecision(6);
+  if (src!=='ftlbfin2') $('cv-ftlbfin2').value = +(Jm2/2101.52).toPrecision(6);
+}
+function cvCTE(src) {
+  // α[per°F] = α[per°C] × (5/9)
+  if (src==='C') $('cv-uinin_F').value = +(num('cv-umm_C') * 5/9).toPrecision(5);
+  else           $('cv-umm_C').value   = +(num('cv-uinin_F') * 9/5).toPrecision(5);
+}
+function cvMass(src) {
+  // base: g; 1 kg = 1000 g; 1 lb = 453.592 g
+  let g;
+  if (src==='g')  g = num('cv-g');
+  if (src==='kg') g = num('cv-kg') * 1000;
+  if (src==='lb') g = num('cv-lb') * 453.592;
+  if (src!=='g')  $('cv-g').value  = +g.toPrecision(6);
+  if (src!=='kg') $('cv-kg').value = +(g/1000).toPrecision(6);
+  if (src!=='lb') $('cv-lb').value = +(g/453.592).toPrecision(6);
+}
+function cvEnergy(src) {
+  // base: J; 1 mJ = 0.001 J; 1 ft·lbf = 1.35582 J
+  let J;
+  if (src==='mJ')    J = num('cv-mJ')    * 0.001;
+  if (src==='J')     J = num('cv-J');
+  if (src==='ftlbf') J = num('cv-ftlbf') * 1.35582;
+  if (src!=='mJ')    $('cv-mJ').value    = +(J/0.001).toPrecision(6);
+  if (src!=='J')     $('cv-J').value     = +J.toPrecision(6);
+  if (src!=='ftlbf') $('cv-ftlbf').value = +(J/1.35582).toPrecision(6);
+}
+
+/* ─── init ─── */
+calcLH(); calcSF(); calcSF2(); calcPF(); calcSH(); calcTH(); calcWLF();
+</script>
+</body>
+</html>
