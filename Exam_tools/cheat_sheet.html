@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polymer Engineering & Injection Molding Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = { tex: { inlineMath: [['\\(', '\\)']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .input-group label { display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 0.25rem; }
+        .input-group input { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; transition: border-color 0.2s; }
+        .input-group input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .result-box { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 0.375rem; margin-top: 1rem; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <header class="mb-8 border-b pb-4">
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Polymer Engineering Suite</h1>
+            <p class="text-slate-500 mt-2">Injection Molding Cheat Sheet &amp; Viscoelastic Calculator</p>
+        </header>
+
+        <div class="flex flex-col md:flex-row gap-8">
+            
+            <aside class="w-full md:w-64 flex-shrink-0">
+                <nav class="flex flex-col space-y-1">
+                    <button onclick="switchTab('cheat-sheet')" id="nav-cheat-sheet" class="nav-btn bg-blue-50 text-blue-700 font-semibold px-4 py-2 rounded-md text-left transition-colors">📘 Cheat Sheet</button>
+                    <button onclick="switchTab('shrinkage')" id="nav-shrinkage" class="nav-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-md text-left transition-colors">📏 Shrinkage &amp; Modulus</button>
+                    <button onclick="switchTab('snap-fit')" id="nav-snap-fit" class="nav-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-md text-left transition-colors">📎 Snap-Fit &amp; Hinges</button>
+                    <button onclick="switchTab('press-fit')" id="nav-press-fit" class="nav-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-md text-left transition-colors">⚙️ Press-Fit Torque</button>
+                    <button onclick="switchTab('viscoelastic')" id="nav-viscoelastic" class="nav-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-md text-left transition-colors">⏳ Viscoelastic Creep</button>
+                </nav>
+            </aside>
+
+            <main class="flex-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                
+                <!-- TAB 1: Cheat Sheet -->
+                <div id="cheat-sheet" class="tab-content active">
+                    <h2 class="text-2xl font-bold mb-4">Injection Molding Rules of Thumb</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-700 border-b pb-2 mb-3">Thermodynamics & Rheology</h3>
+                            <ul class="space-y-2 text-sm">
+                                <li><strong>Viscosity Reduction:</strong> Introduce heat to increase molecular free volume, allowing chains to slip.</li>
+                                <li><strong>Shear-Thinning (Pseudoplasticity):</strong> Higher shear rates align macromolecular chains parallel to flow, dropping apparent viscosity.</li>
+                                <li><strong>Amorphous (e.g., PC-ABS):</strong> Random molecular structure. Gradual, linear shrinkage (~3% volumetric).</li>
+                                <li><strong>Semi-Crystalline (e.g., PP):</strong> Folds into dense lamellae. Severe, non-linear shrinkage (~6% volumetric).</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-700 border-b pb-2 mb-3">Part Design & Defect Mitigation</h3>
+                            <ul class="space-y-2 text-sm">
+                                <li><strong>Uniform Wall Thickness:</strong> Prevents differential cooling and warpage.</li>
+                                <li><strong>Gate Placement:</strong> ALWAYS locate at the thickest section to establish unidirectional flow to thinnest parts.</li>
+                                <li><strong>Radii over Sharp Corners:</strong> Sharp corners multiply stress (\(K_t > 3.0\)). Radii distribute force flow lines.</li>
+                                <li><strong>Ejector Marks:</strong> Caused by too short cooling times. Core yields under pin pressure while hot.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Shrinkage & Secant Modulus -->
+                <div id="shrinkage" class="tab-content">
+                    <h2 class="text-2xl font-bold mb-4">Shrinkage & Secant Modulus</h2>
+                    
+                    <div class="bg-slate-50 p-5 rounded-lg border mb-6">
+                        <h3 class="font-semibold text-lg mb-2">Derive Shrinkage from pvT Diagram</h3>
+                        <p class="text-xs text-slate-500 mb-4">Read specific volume (\(v\)) at gate freeze vs room temp. Formula: \( S_v = \frac{v_{melt} - v_{room}}{v_{melt}} \times 100\% \)</p>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                            <div class="input-group">
+                                <label>\(v_{melt}\) (e.g., at 135°C)</label>
+                                <input type="number" id="pvt-v-melt" value="1.04" step="0.01" oninput="calcPvtShrinkage()">
+                            </div>
+                            <div class="input-group">
+                                <label>\(v_{room}\) (e.g., at 25°C)</label>
+                                <input type="number" id="pvt-v-room" value="0.98" step="0.01" oninput="calcPvtShrinkage()">
+                            </div>
+                            <div class="result-box mt-0 py-3 col-span-1 md:col-span-2 flex justify-between items-center h-[60px] mb-1">
+                                <div>
+                                    <span class="block text-xs text-blue-800">Volumetric (\(S_v\)):</span>
+                                    <span class="text-lg font-bold text-blue-900"><span id="res-pvt-sv">5.77</span>%</span>
+                                </div>
+                                <div class="text-right border-l border-blue-200 pl-4">
+                                    <span class="block text-xs text-blue-800">Linear (\(S_L \approx S_v / 3\)):</span>
+                                    <span class="text-lg font-bold text-blue-900"><span id="res-pvt-sl">1.92</span>%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-50 p-5 rounded-lg border">
+                            <h3 class="font-semibold text-lg mb-2">Linear vs Volumetric Shrinkage</h3>
+                            <p class="text-xs text-slate-500 mb-2">Formula: \( S_v \approx 3 \times S_L \)</p>
+                            <div class="space-y-4 mt-4">
+                                <div class="input-group">
+                                    <label>Volumetric Shrinkage (Sv) %</label>
+                                    <input type="number" id="calc-sv" placeholder="e.g. 6" oninput="calcShrinkage('sv')">
+                                </div>
+                                <div class="input-group">
+                                    <label>Linear Shrinkage (SL) %</label>
+                                    <input type="number" id="calc-sl" placeholder="e.g. 2" oninput="calcShrinkage('sl')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-lg border">
+                            <h3 class="font-semibold text-lg mb-2">Secant Modulus (\( E_{sec} \))</h3>
+                            <p class="text-xs text-slate-500 mb-4">Formula: \( E_{sec} = \sigma / \epsilon \)</p>
+                            <div class="space-y-4">
+                                <div class="input-group">
+                                    <label>Stress (\( \sigma \)) in MPa</label>
+                                    <input type="number" id="calc-sec-stress" value="17.5" oninput="calcSecant()">
+                                </div>
+                                <div class="input-group">
+                                    <label>Strain (\( \epsilon \)) as %</label>
+                                    <input type="number" id="calc-sec-strain" value="1.0" oninput="calcSecant()">
+                                </div>
+                                <div class="result-box">
+                                    <span class="block text-sm text-blue-800 font-semibold">Secant Modulus:</span>
+                                    <span class="text-2xl font-bold text-blue-900" id="res-secant">1750 MPa</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Snap-Fit & Hinges -->
+                <div id="snap-fit" class="tab-content">
+                    <h2 class="text-2xl font-bold mb-4">Cantilever Snap-Fit & Living Hinge</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-slate-50 p-5 rounded-lg border">
+                            <h3 class="font-semibold text-lg mb-2">Maximum Allowable Strain Limits</h3>
+                            <ul class="text-sm space-y-2 mb-4 text-slate-600">
+                                <li><strong>Single Use:</strong> 70% of Yield Strain</li>
+                                <li><strong>Multi-Use (Fatigue):</strong> 42% of Yield Strain</li>
+                            </ul>
+                            <div class="input-group mb-2">
+                                <label>Material Yield Strain (%)</label>
+                                <input type="number" id="sf-yield" value="3.0" step="0.1" oninput="calcSnapFitLimits()">
+                            </div>
+                            <p class="text-sm">Max Single Use: <span id="sf-single" class="font-bold">2.10%</span></p>
+                            <p class="text-sm">Max Multi-Use: <span id="sf-multi" class="font-bold text-blue-600">1.26%</span></p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-lg border">
+                            <h3 class="font-semibold text-lg mb-2">Living Hinge Strain</h3>
+                            <p class="text-xs text-slate-500 mb-4">Formula: \( \epsilon = t / (2R + t) \)</p>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="input-group">
+                                    <label>Thickness (t) mm</label>
+                                    <input type="number" id="hinge-t" value="0.3" oninput="calcHinge()">
+                                </div>
+                                <div class="input-group">
+                                    <label>Bend Radius (R) mm</label>
+                                    <input type="number" id="hinge-r" value="1.0" oninput="calcHinge()">
+                                </div>
+                            </div>
+                            <div class="result-box mt-0 py-2">
+                                <span>Max Outer Fiber Strain: <strong id="res-hinge">13.04%</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-5 rounded-lg border">
+                        <h3 class="font-semibold text-lg mb-2">Cantilever Strain & Minimum Length</h3>
+                        <p class="text-xs text-slate-500 mb-4">Formula: \( \epsilon = \frac{1.5 \cdot h_0 \cdot Y}{L^2} \)  |  \( L = \sqrt{\frac{1.5 \cdot h_0 \cdot Y}{\epsilon}} \)</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="input-group">
+                                <label>Base Thickness (\( h_0 \)) mm</label>
+                                <input type="number" id="sf-h0" value="2.0" oninput="calcSnapFitKinematics()">
+                            </div>
+                            <div class="input-group">
+                                <label>Deflection (Y) mm</label>
+                                <input type="number" id="sf-y" value="0.2" oninput="calcSnapFitKinematics()">
+                            </div>
+                            <div class="input-group">
+                                <label>Beam Length (L) mm</label>
+                                <input type="number" id="sf-l" value="6.9" oninput="calcSnapFitKinematics('length')">
+                            </div>
+                        </div>
+                        <div class="result-box mt-4 flex justify-between items-center">
+                            <div>
+                                <span class="block text-sm text-blue-800">Calculated Strain at Root:</span>
+                                <span class="text-2xl font-bold text-blue-900" id="res-sf-strain">1.26%</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-sm text-blue-800">Req. Length for Multi-Use (<span id="req-strain-lbl">1.26</span>%):</span>
+                                <span class="text-xl font-bold text-blue-900" id="res-sf-req-length">6.90 mm</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: Press-Fit -->
+                <div id="press-fit" class="tab-content">
+                    <h2 class="text-2xl font-bold mb-4">Interference Press-Fit & Torque</h2>
+                    <p class="text-sm text-slate-600 mb-6">Utilizes Lamé's thick-walled cylinder equations to calculate residual radial contact pressure (\(P\)) and maximum transmittable torque (\(T\)).</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h3 class="font-semibold border-b pb-2">Geometry & Friction</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="input-group">
+                                    <label>Hub Inner Dia (\(D_1\)) mm</label>
+                                    <input type="number" id="pf-d1" value="14.85" step="0.01" oninput="calcPressFit()">
+                                </div>
+                                <div class="input-group">
+                                    <label>Shaft Outer Dia (\(D_s\)) mm</label>
+                                    <input type="number" id="pf-ds" value="15.00" step="0.01" oninput="calcPressFit()">
+                                </div>
+                                <div class="input-group">
+                                    <label>Hub Outer Dia (\(D_2\)) mm</label>
+                                    <input type="number" id="pf-d2" value="50.0" oninput="calcPressFit()">
+                                </div>
+                                <div class="input-group">
+                                    <label>Engagement Length (L) mm</label>
+                                    <input type="number" id="pf-l" value="30.0" oninput="calcPressFit()">
+                                </div>
+                                <div class="input-group col-span-2">
+                                    <label>Static Friction (\(\mu\))</label>
+                                    <input type="number" id="pf-mu" value="0.1" step="0.01" oninput="calcPressFit()">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="font-semibold border-b pb-2">Material Properties</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="input-group">
+                                    <label>Poisson's Ratio (\(\nu\))</label>
+                                    <input type="number" id="pf-nu" value="0.4" step="0.01" oninput="calcPressFit()">
+                                </div>
+                                <div class="input-group">
+                                    <label>Relaxation Modulus (E) MPa</label>
+                                    <input type="number" id="pf-e" value="1000" oninput="calcPressFit()">
+                                </div>
+                            </div>
+                            <div class="result-box">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Interference (\(\delta\)):</span>
+                                    <strong id="res-pf-delta">0.15 mm</strong>
+                                </div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Contact Pressure (P):</span>
+                                    <strong id="res-pf-p">6.25 MPa</strong>
+                                </div>
+                                <div class="flex justify-between items-end mt-4 pt-4 border-t border-blue-200">
+                                    <span class="text-sm font-semibold">Max Transmittable Torque:</span>
+                                    <span class="text-2xl font-bold text-blue-900"><span id="res-pf-t">6623</span> Nmm</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: Viscoelastic Creep -->
+                <div id="viscoelastic" class="tab-content">
+                    <h2 class="text-2xl font-bold mb-4">Viscoelastic Creep & Superposition</h2>
+                    
+                    <!-- 🐵 MONKEY MODE AUTO-SOLVER -->
+                    <div class="bg-amber-50 p-4 rounded-xl border border-amber-300 mb-6 shadow-sm">
+                        <div class="flex items-center gap-3 mb-4 border-b border-amber-200 pb-2">
+                            <span class="text-2xl">🐵</span>
+                            <h3 class="text-lg font-bold text-amber-900">Monkey Mode (Exam Auto-Solver)</h3>
+                        </div>
+                        
+                        <div class="space-y-3 text-sm font-medium text-slate-800">
+                            <div class="flex flex-wrap items-center gap-2">
+                                "Calculate strain after 
+                                <input type="number" id="mm-t1" class="w-16 text-center font-bold border-b-2 border-amber-500 bg-white/50 px-1 py-1" value="10" oninput="calcMonkeyMode()"> 
+                                hours load at a stress of 
+                                <input type="number" id="mm-sigma" class="w-16 text-center font-bold border-b-2 border-amber-500 bg-white/50 px-1 py-1" value="5" oninput="calcMonkeyMode()"> 
+                                MPa at 
+                                <select id="mm-temp1" class="w-20 text-center font-bold border-b-2 border-amber-500 bg-white/50 px-1 py-1 cursor-pointer" onchange="updateMonkeyShift()">
+                                    <option value="70">70</option>
+                                    <option value="50" selected>50</option>
+                                    <option value="30">30</option>
+                                </select>
+                                °C (Shift Factor: <input type="number" id="mm-shift" class="w-16 text-center text-blue-700 bg-blue-100 font-bold border border-blue-300 rounded px-1" value="54" oninput="calcMonkeyMode()">),"
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                "followed by 
+                                <input type="number" id="mm-t2" class="w-16 text-center font-bold border-b-2 border-amber-500 bg-white/50 px-1 py-1" value="1" oninput="calcMonkeyMode()"> 
+                                hours load at no load at 
+                                <select id="mm-temp2" class="w-20 text-center font-bold border-b-2 border-amber-500 bg-white/50 px-1 py-1 cursor-pointer" disabled>
+                                    <option value="30" selected>30</option>
+                                </select>
+                                degrees."
+                            </div>
+                        </div>
+
+                        <div class="mt-4 bg-white rounded-lg p-3 border border-amber-200 flex justify-between items-center">
+                            <div>
+                                <span class="text-xs text-slate-500 uppercase font-bold tracking-wider block mb-1">Final Answer (Q17, Q18, Q19)</span>
+                                <div class="text-xs text-slate-400 font-mono" id="mm-breakdown">Reads from table below...</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-2xl font-black text-blue-600" id="mm-result-pct">0.27%</span>
+                                <span class="text-sm text-slate-500 font-mono ml-2">(<span id="mm-result-dec">0.0027</span>)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout Container: Multi-stage (Left) / Table & Tools (Right) -->
+                    <div class="flex flex-col xl:flex-row gap-6">
+                        
+                        <!-- LEFT COLUMN: Multi-Stage Calculator -->
+                        <div class="flex-1 bg-slate-50 p-5 rounded-lg border">
+                            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                                <h3 class="font-semibold text-lg">Manual Loading Stages</h3>
+                                <button onclick="addBoltzmannStage()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200 font-medium">+ Add Stage</button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-slate-200">
+                                <div class="input-group">
+                                    <label>Reference Temp (\(T_{ref}\))</label>
+                                    <input type="number" value="40" step="1">
+                                </div>
+                                <div class="input-group">
+                                    <label>Calculation Temp (\(T_{calc}\))</label>
+                                    <input type="number" value="30" step="1">
+                                </div>
+                            </div>
+                            <div id="bz-stages" class="space-y-3 mb-4">
+                                <div class="grid grid-cols-12 gap-2 items-end bz-stage">
+                                    <div class="input-group col-span-3">
+                                        <label>Time (\(t-t_i\))</label>
+                                        <input type="text" class="bz-time text-sm" value="541h">
+                                    </div>
+                                    <div class="input-group col-span-3">
+                                        <label>\(\Delta \sigma\) (MPa)</label>
+                                        <input type="number" class="bz-dsigma" value="5.0" step="0.1" oninput="calcMultiBoltzmann()">
+                                    </div>
+                                    <div class="input-group col-span-4">
+                                        <label>Modulus \(E\) (MPa)</label>
+                                        <input type="number" class="bz-emod" value="596.5" oninput="calcMultiBoltzmann()">
+                                    </div>
+                                    <div class="col-span-2 flex justify-end">
+                                        <button onclick="this.parentElement.parentElement.remove(); calcMultiBoltzmann();" class="mb-1 px-3 py-2 text-red-500 hover:bg-red-50 rounded">✕</button>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-12 gap-2 items-end bz-stage">
+                                    <div class="input-group col-span-3">
+                                        <label>Time (\(t-t_i\))</label>
+                                        <input type="text" class="bz-time text-sm" value="1h">
+                                    </div>
+                                    <div class="input-group col-span-3">
+                                        <label>\(\Delta \sigma\) (MPa)</label>
+                                        <input type="number" class="bz-dsigma" value="-5.0" step="0.1" oninput="calcMultiBoltzmann()">
+                                    </div>
+                                    <div class="input-group col-span-4">
+                                        <label>Modulus \(E\) (MPa)</label>
+                                        <input type="number" class="bz-emod" value="880" oninput="calcMultiBoltzmann()">
+                                    </div>
+                                    <div class="col-span-2 flex justify-end">
+                                        <button onclick="this.parentElement.parentElement.remove(); calcMultiBoltzmann();" class="mb-1 px-3 py-2 text-red-500 hover:bg-red-50 rounded">✕</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="result-box text-center mt-6">
+                                <span class="block text-sm text-blue-800 font-semibold mb-1">Total Residual Strain (\(\epsilon\))</span>
+                                <span class="text-3xl font-bold text-blue-900" id="res-bz-strain-multi">0.0027</span>
+                                <span class="block text-xs text-blue-600 mt-1">Percentage: <span id="res-bz-strain-multi-pct">0.27</span>%</span>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: Table & Math Tools -->
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-md mb-2">Editable Modulus Reference Table</h3>
+                            <div class="overflow-x-auto border rounded-lg shadow-sm">
+                                <table class="min-w-full text-sm text-left text-slate-600" id="modulus-table">
+                                    <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                                        <tr>
+                                            <th class="px-4 py-2 border-b">Time [hrs]</th>
+                                            <th class="px-4 py-2 border-b text-blue-700 font-bold bg-blue-50">30 °C (Ref)</th>
+                                            <th class="px-4 py-2 border-b">50 °C</th>
+                                            <th class="px-4 py-2 border-b">70 °C</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modulus-tbody" oninput="calcMonkeyMode(); calcMultiBoltzmann();">
+                                        <tr class="bg-white border-b transition-colors">
+                                            <th class="px-4 py-2 font-medium text-slate-900 time-label">1</th>
+                                            <td class="px-4 py-2 font-mono bg-blue-50 font-bold val-30" contenteditable="true" ondblclick="copyToStage(this)">880</td>
+                                            <td class="px-4 py-2 font-mono">629</td>
+                                            <td class="px-4 py-2 font-mono">400</td>
+                                        </tr>
+                                        <tr class="bg-white border-b transition-colors">
+                                            <th class="px-4 py-2 font-medium text-slate-900 time-label">10</th>
+                                            <td class="px-4 py-2 font-mono bg-blue-50 font-bold val-30" contenteditable="true" ondblclick="copyToStage(this)">788</td>
+                                            <td class="px-4 py-2 font-mono">525</td>
+                                            <td class="px-4 py-2 font-mono">343</td>
+                                        </tr>
+                                        <tr class="bg-white border-b transition-colors">
+                                            <th class="px-4 py-2 font-medium text-slate-900 time-label">100</th>
+                                            <td class="px-4 py-2 font-mono bg-blue-50 font-bold val-30" contenteditable="true" ondblclick="copyToStage(this)">683</td>
+                                            <td class="px-4 py-2 font-mono">418</td>
+                                            <td class="px-4 py-2 font-mono">283</td>
+                                        </tr>
+                                        <tr class="bg-white border-b transition-colors">
+                                            <th class="px-4 py-2 font-medium text-slate-900 time-label">1000</th>
+                                            <td class="px-4 py-2 font-mono bg-blue-50 font-bold val-30" contenteditable="true" ondblclick="copyToStage(this)">565</td>
+                                            <td class="px-4 py-2 font-mono">356</td>
+                                            <td class="px-4 py-2 font-mono">246</td>
+                                        </tr>
+                                        <tr class="bg-white border-b transition-colors">
+                                            <th class="px-4 py-2 font-medium text-slate-900 time-label">10000</th>
+                                            <td class="px-4 py-2 font-mono bg-blue-50 font-bold val-30" contenteditable="true" ondblclick="copyToStage(this)">464</td>
+                                            <td class="px-4 py-2 font-mono">295</td>
+                                            <td class="px-4 py-2 font-mono">209</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2 text-right">Edit any 30°C cell and Monkey Mode will auto-update.</p>
+
+                            <!-- WLF and Interpolator -->
+                            <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <h4 class="font-semibold text-sm text-slate-800 mb-2 border-b pb-1">WLF Shift (\(a_T\))</h4>
+                                        <div class="grid grid-cols-2 gap-2 mb-2">
+                                            <div class="input-group">
+                                                <label class="text-[10px]">Test °C</label>
+                                                <input type="number" id="wlf-t" value="50" oninput="calcWLF()" class="text-sm">
+                                            </div>
+                                            <div class="input-group">
+                                                <label class="text-[10px]">Ref °C</label>
+                                                <input type="number" id="wlf-tref" value="30" oninput="calcWLF()" class="text-sm">
+                                            </div>
+                                            <div class="input-group">
+                                                <label class="text-[10px]">C1</label>
+                                                <input type="number" id="wlf-c1" value="17.44" oninput="calcWLF()" class="text-sm">
+                                            </div>
+                                            <div class="input-group">
+                                                <label class="text-[10px]">C2</label>
+                                                <input type="number" id="wlf-c2" value="51.6" oninput="calcWLF()" class="text-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-blue-50 p-2 rounded">
+                                        <span class="text-xs font-semibold text-blue-800">\(a_T\):</span>
+                                        <span class="font-bold text-blue-900 font-mono text-sm" id="res-wlf-at">--</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <h4 class="font-semibold text-sm text-slate-800 mb-2 border-b pb-1">Log Interpolator</h4>
+                                        <div class="grid grid-cols-2 gap-2 mb-2">
+                                            <div class="input-group">
+                                                <label class="text-[10px]">\(t_1\) &amp; \(E_1\)</label>
+                                                <div class="flex gap-1">
+                                                    <input type="number" id="interp-t1" value="100" oninput="calcInterpolation()" class="text-xs w-1/2">
+                                                    <input type="number" id="interp-e1" value="683" oninput="calcInterpolation()" class="text-xs w-1/2">
+                                                </div>
+                                            </div>
+                                            <div class="input-group">
+                                                <label class="text-[10px]">\(t_2\) &amp; \(E_2\)</label>
+                                                <div class="flex gap-1">
+                                                    <input type="number" id="interp-t2" value="1000" oninput="calcInterpolation()" class="text-xs w-1/2">
+                                                    <input type="number" id="interp-e2" value="565" oninput="calcInterpolation()" class="text-xs w-1/2">
+                                                </div>
+                                            </div>
+                                            <div class="input-group col-span-2">
+                                                <label class="text-[10px] text-blue-800 font-semibold">Target Time \(t\)</label>
+                                                <input type="number" id="interp-target-t" value="541" class="border-blue-400 bg-blue-50/50 text-sm" oninput="calcInterpolation()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-blue-50 p-2 rounded border border-blue-200">
+                                        <span class="text-xs font-semibold text-blue-800">\(E\):</span>
+                                        <span class="font-bold text-blue-900 font-mono text-sm"><span id="res-interp-e">596.5</span> MPa</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-blue-700', 'font-semibold');
+                btn.classList.add('text-slate-600');
+            });
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById('nav-' + tabId).classList.remove('text-slate-600');
+            document.getElementById('nav-' + tabId).classList.add('bg-blue-50', 'text-blue-700', 'font-semibold');
+        }
+
+        // --- Calc: Shrinkage ---
+        function calcShrinkage(source) {
+            const svInput = document.getElementById('calc-sv');
+            const slInput = document.getElementById('calc-sl');
+            if (source === 'sv' && svInput.value !== '') {
+                slInput.value = (parseFloat(svInput.value) / 3).toFixed(2);
+            } else if (source === 'sl' && slInput.value !== '') {
+                svInput.value = (parseFloat(slInput.value) * 3).toFixed(2);
+            }
+        }
+
+        function calcPvtShrinkage() {
+            const vMelt = parseFloat(document.getElementById('pvt-v-melt').value);
+            const vRoom = parseFloat(document.getElementById('pvt-v-room').value);
+            if (vMelt && vRoom && vMelt > 0) {
+                const sv = ((vMelt - vRoom) / vMelt) * 100;
+                document.getElementById('res-pvt-sv').innerText = sv.toFixed(2);
+                document.getElementById('res-pvt-sl').innerText = (sv / 3).toFixed(2);
+            }
+        }
+
+        // --- Calc: Secant & SnapFit & PressFit ---
+        function calcSecant() {
+            const stress = parseFloat(document.getElementById('calc-sec-stress').value);
+            const strain = parseFloat(document.getElementById('calc-sec-strain').value);
+            if(stress && strain) document.getElementById('res-secant').innerText = (stress / (strain / 100)).toFixed(0) + " MPa";
+        }
+
+        function calcSnapFitLimits() {
+            const yieldStrain = parseFloat(document.getElementById('sf-yield').value);
+            if (yieldStrain) {
+                const single = yieldStrain * 0.7;
+                const multi = single * 0.6;
+                document.getElementById('sf-single').innerText = single.toFixed(2) + "%";
+                document.getElementById('sf-multi').innerText = multi.toFixed(2) + "%";
+                document.getElementById('req-strain-lbl').innerText = multi.toFixed(2);
+                calcSnapFitKinematics();
+            }
+        }
+
+        function calcSnapFitKinematics(triggeredBy = 'other') {
+            const h0 = parseFloat(document.getElementById('sf-h0').value);
+            const y = parseFloat(document.getElementById('sf-y').value);
+            let l = parseFloat(document.getElementById('sf-l').value);
+            const maxStrainPct = parseFloat(document.getElementById('sf-multi').innerText) / 100;
+
+            if (h0 && y) {
+                if(l) document.getElementById('res-sf-strain').innerText = (((1.5 * h0 * y) / (l * l)) * 100).toFixed(2) + "%";
+                document.getElementById('res-sf-req-length').innerText = Math.sqrt((1.5 * h0 * y) / maxStrainPct).toFixed(2) + " mm";
+            }
+        }
+
+        function calcHinge() {
+            const t = parseFloat(document.getElementById('hinge-t').value);
+            const r = parseFloat(document.getElementById('hinge-r').value);
+            if (t && r) document.getElementById('res-hinge').innerText = ((t / ((2 * r) + t)) * 100).toFixed(2) + "%";
+        }
+
+        function calcPressFit() {
+            const d1 = parseFloat(document.getElementById('pf-d1').value);
+            const ds = parseFloat(document.getElementById('pf-ds').value);
+            const d2 = parseFloat(document.getElementById('pf-d2').value);
+            const l = parseFloat(document.getElementById('pf-l').value);
+            const mu = parseFloat(document.getElementById('pf-mu').value);
+            const nu = parseFloat(document.getElementById('pf-nu').value);
+            const E = parseFloat(document.getElementById('pf-e').value);
+
+            if (d1 && ds && d2 && l && mu && nu && E) {
+                const delta = ds - d1;
+                document.getElementById('res-pf-delta').innerText = delta.toFixed(3) + " mm";
+                const w = ((d2*d2 + d1*d1) / (d2*d2 - d1*d1)) + nu;
+                const p = (delta / d1) * (E / w);
+                document.getElementById('res-pf-p').innerText = p.toFixed(2) + " MPa";
+                document.getElementById('res-pf-t').innerText = ((Math.PI * d1 * l * p * mu) * (d1 / 2)).toFixed(0);
+            }
+        }
+
+        // --- VISCOELASTIC LOGIC ---
+        function addBoltzmannStage() {
+            const container = document.getElementById('bz-stages');
+            const stageHTML = `
+                <div class="grid grid-cols-12 gap-2 items-end bz-stage">
+                    <div class="input-group col-span-3">
+                        <label>Time (\\(t-t_i\\))</label>
+                        <input type="text" class="bz-time text-sm" placeholder="10h">
+                    </div>
+                    <div class="input-group col-span-3">
+                        <label>\\(\\Delta \\sigma\\) (MPa)</label>
+                        <input type="number" class="bz-dsigma" value="0" step="0.1" oninput="calcMultiBoltzmann()">
+                    </div>
+                    <div class="input-group col-span-4">
+                        <label>Modulus \\(E\\) (MPa)</label>
+                        <input type="number" class="bz-emod" value="1000" oninput="calcMultiBoltzmann()">
+                    </div>
+                    <div class="col-span-2 flex justify-end">
+                        <button onclick="this.parentElement.parentElement.remove(); calcMultiBoltzmann();" class="mb-1 px-3 py-2 text-red-500 hover:bg-red-50 rounded">✕</button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', stageHTML);
+        }
+
+        function calcMultiBoltzmann() {
+            const stages = document.querySelectorAll('.bz-stage');
+            let totalStrain = 0;
+            stages.forEach(stage => {
+                const dsigma = parseFloat(stage.querySelector('.bz-dsigma').value) || 0;
+                const emod = parseFloat(stage.querySelector('.bz-emod').value);
+                if (emod) totalStrain += (dsigma / emod);
+            });
+            document.getElementById('res-bz-strain-multi').innerText = totalStrain.toFixed(4);
+            document.getElementById('res-bz-strain-multi-pct').innerText = (totalStrain * 100).toFixed(3);
+        }
+
+        function copyToStage(element) {
+            const val = parseFloat(element.innerText);
+            if (!isNaN(val)) {
+                const inputs = document.querySelectorAll('.bz-emod');
+                if (inputs.length > 0) {
+                    inputs[inputs.length - 1].value = val;
+                    calcMultiBoltzmann();
+                }
+            }
+        }
+
+        function calcWLF() {
+            const t = parseFloat(document.getElementById('wlf-t').value);
+            const tref = parseFloat(document.getElementById('wlf-tref').value);
+            const c1 = parseFloat(document.getElementById('wlf-c1').value);
+            const c2 = parseFloat(document.getElementById('wlf-c2').value);
+            if (!isNaN(t) && !isNaN(tref) && !isNaN(c1) && !isNaN(c2)) {
+                const logAt = (-c1 * (t - tref)) / (c2 + (t - tref));
+                document.getElementById('res-wlf-at').innerText = Math.pow(10, logAt).toExponential(3);
+            }
+        }
+
+        function calcInterpolation() {
+            const t1 = parseFloat(document.getElementById('interp-t1').value);
+            const e1 = parseFloat(document.getElementById('interp-e1').value);
+            const t2 = parseFloat(document.getElementById('interp-t2').value);
+            const e2 = parseFloat(document.getElementById('interp-e2').value);
+            const targetT = parseFloat(document.getElementById('interp-target-t').value);
+
+            if (t1 > 0 && t2 > 0 && targetT > 0 && !isNaN(e1) && !isNaN(e2)) {
+                const slope = (e2 - e1) / (Math.log10(t2) - Math.log10(t1));
+                const interpE = e1 + slope * (Math.log10(targetT) - Math.log10(t1));
+                document.getElementById('res-interp-e').innerText = interpE.toFixed(1);
+            }
+        }
+
+        // --- 🐵 DYNAMIC MONKEY MODE ---
+        function updateMonkeyShift() {
+            const temp = document.getElementById('mm-temp1').value;
+            const shiftInput = document.getElementById('mm-shift');
+            if (temp === '70') shiftInput.value = 1000;
+            else if (temp === '50') shiftInput.value = 54;
+            else if (temp === '30') shiftInput.value = 1;
+            calcMonkeyMode();
+        }
+
+        function getInterpolatedModulusFromDOM(timeInHours) {
+            const rows = document.querySelectorAll('#modulus-tbody tr');
+            let data = [];
+            
+            rows.forEach(row => {
+                const tStr = row.querySelector('.time-label').innerText;
+                const mStr = row.querySelector('.val-30').innerText;
+                const t = parseFloat(tStr);
+                const m = parseFloat(mStr);
+                if (!isNaN(t) && !isNaN(m)) data.push({t, m});
+            });
+            
+            data.sort((a, b) => a.t - b.t);
+            if (data.length === 0) return 0;
+            if (timeInHours <= data[0].t) return data[0].m;
+            if (timeInHours >= data[data.length - 1].t) return data[data.length - 1].m;
+            
+            for (let i = 0; i < data.length - 1; i++) {
+                if (timeInHours >= data[i].t && timeInHours <= data[i+1].t) {
+                    const logT1 = Math.log10(data[i].t);
+                    const logT2 = Math.log10(data[i+1].t);
+                    const slope = (data[i+1].m - data[i].m) / (logT2 - logT1);
+                    return data[i].m + slope * (Math.log10(timeInHours) - logT1);
+                }
+            }
+            return 0;
+        }
+
+        function calcMonkeyMode() {
+            const t1 = parseFloat(document.getElementById('mm-t1').value);
+            const sigma = parseFloat(document.getElementById('mm-sigma').value);
+            const t2 = parseFloat(document.getElementById('mm-t2').value);
+            const shiftFactor = parseFloat(document.getElementById('mm-shift').value);
+            
+            if(isNaN(t1) || isNaN(sigma) || isNaN(t2) || isNaN(shiftFactor)) return;
+
+            const shiftedLoadTime = t1 * shiftFactor;
+            const totalEffectiveTime = shiftedLoadTime + t2;
+            const restTime = t2;
+
+            const eLoad = getInterpolatedModulusFromDOM(totalEffectiveTime);
+            const eRest = getInterpolatedModulusFromDOM(restTime);
+
+            if (eLoad === 0 || eRest === 0) return;
+
+            const strainDec = (sigma / eLoad) - (sigma / eRest);
+            
+            document.getElementById('mm-result-pct').innerText = (strainDec * 100).toFixed(2) + "%";
+            
+            let decStr = strainDec.toFixed(4);
+            if(decStr.endsWith('0')) decStr = decStr.slice(0, -1);
+            document.getElementById('mm-result-dec').innerText = decStr;
+            
+            document.getElementById('mm-breakdown').innerText = 
+                `E_load (@${totalEffectiveTime}h) = ${eLoad.toFixed(1)} MPa  |  E_rest (@${restTime}h) = ${eRest.toFixed(1)} MPa`;
+        }
+
+        window.onload = () => {
+            calcPvtShrinkage();
+            calcSnapFitLimits();
+            calcPressFit();
+            calcMultiBoltzmann();
+            calcWLF();
+            calcInterpolation();
+            calcMonkeyMode();
+        };
+    </script>
+</body>
+</html>
