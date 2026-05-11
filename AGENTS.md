@@ -32,7 +32,10 @@ plastic_design_calculators/
     ├── E02_snap_fit.ipynb           # Cantilever snap-fit: strain, Fd, Fa, Fdis
     ├── E03_press_fit.ipynb          # Lamé press-fit: p(t) and torque decay
     ├── E04_thermal_expansion.ipynb  # CTE, constrained stress, ΔT_crit
-    └── E05_material_selection.ipynb # 5-step filter + DFM advice
+    ├── E05_material_selection.ipynb # 5-step filter + DFM advice
+    └── solutions/
+        ├── S01_bsp_tabular.ipynb    # BSP from tabular E_c(T,t) data + TTS (Q16–Q19)
+        └── S02_shrinkage_pvt.ipynb  # pvT volumetric + linear shrinkage (Q11–Q12)
 ```
 
 ---
@@ -187,6 +190,10 @@ WLF_CONSTANTS = {
 ```
 
 Equation: `log(a_T) = -C1*(T - T_ref) / (C2 + (T - T_ref))`
+
+**Valid range:** `C2 + (T - T_ref) > 0`, i.e. `T > T_ref - C2`. Passing a temperature below this threshold makes the denominator negative and inverts the shift direction. `tts_multiplier` in E01 raises `ValueError` if this occurs. For `PP_23` (C2=101.6, T_ref=23°C) the lower bound is −78.6°C — safe for all practical service temperatures. For materials with a high T_ref (e.g. PVC: T_ref=80°C, C2=45.8 → lower bound 34.2°C), use a shift table instead of WLF when operating below that bound.
+
+**Consistent usage:** E01 uses `ratio = 1/a_T` for the WLF branch, which matches the shift-table branch (`α_ref / α_T`). Both yield a ratio > 1 when T > T_ref (time accelerates at elevated temperature).
 
 ### `PP_SHIFT_FACTORS`
 Pre-computed shift factors for PP at 23 °C reference: `{temperature_°C: alpha_T}`
@@ -363,11 +370,31 @@ print("--- VALIDATION ---")                # section headers in "--- X ---" styl
 
 | File | Topic | Key output |
 |------|-------|------------|
-| E01_viscoelasticity.ipynb | BSP + WLF time-temperature superposition | ε(t) per BSP step, t_eff at reference T |
+| E01_viscoelasticity.ipynb | BSP + WLF TTS using power-law J(t); default material PP/PP_23 | ε(t) per BSP step, t_eff at reference T |
 | E02_snap_fit.ipynb | Cantilever beam strain, Fd, Fa, Fdis | Strain margin, assembly/disassembly forces, β_lock |
 | E03_press_fit.ipynb | Lamé + E_r(t) log-log interp, torque decay | p(t), Mt(t) at service life, torque margin |
 | E04_thermal_expansion.ipynb | CTE, constrained stress, ΔT_crit | σ_thermal, F_constraint, safety factor |
 | E05_material_selection.ipynb | 5-step filter + DFM advice | Pandas boolean AND filter, draft/shrinkage advice |
+| solutions/S01_bsp_tabular.ipynb | BSP from tabular E_c(T,t) data + TTS horizontal shift | J table (Q16), ε via BSP (Q17–Q19) |
+| solutions/S02_shrinkage_pvt.ipynb | pvT volumetric + linear shrinkage | S_vol, S_lin, mould cavity dimension (Q11–Q12) |
+
+### solutions/ — Minimal Calculation Notebooks
+
+`Exam_tools/solutions/` contains ultra-lean notebooks for question types not fully covered by E01–E05. They have no `pint` units, no validation blocks, and are pure `numpy` + arithmetic — just inputs → compute → print.
+
+| File                      | Covers                                        | Method                                                                              |
+|---------------------------|-----------------------------------------------|-------------------------------------------------------------------------------------|
+| S01_bsp_tabular.ipynb     | Q16 (J=1/E_c table), Q17-Q19 (BSP with TTS)  | Log-log interp/extrap to find t_eff via horizontal shift; full BSP accumulation     |
+| S02_shrinkage_pvt.ipynb   | Q11 (volumetric shrinkage), Q12 (linear)      | S_vol=(v_proc-v_solid)/v_proc; S_lin~S_vol/3; mould dimension M_d                  |
+
+**S01 key functions:**
+
+- `loglog_interp_extrap(times, Ec_col, target_Ec)` — inverse log-log lookup: finds t where E_c = target (extrapolates if outside table range).
+- `get_Ec_at(times, Ec_col, t_query)` — forward log-log lookup: finds E_c at an arbitrary time (extrapolates if outside table range).
+
+**TTS in S01:** for a load step at T_actual ≠ T_calc, the effective time at T_calc is found by locating the time on the T_calc column where E_c equals the value at (T_actual, Δt). When T_actual > T_calc, the effective time is typically much larger than Δt (material creeps faster at higher temperature).
+
+---
 
 ### Adding a new exam notebook
 

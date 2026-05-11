@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Git_kode\\\\plastic_design_calculators\\\\Exam_tools\\\\\" -Recurse | Select-Object FullName, PSIsContainer)",
+      "Bash(dir \"multiple_choice_exam_2023.pdf\")",
+      "Bash(where pdftotext *)",
+      "Bash(powershell -Command \"Add-Type -AssemblyName System.Drawing; [Reflection.Assembly]::LoadWithPartialName\\('System.Windows.Forms'\\) | Out-Null; dir 'c:\\\\Git_kode\\\\plastic_design_calculators\\\\Exam_tools\\\\examples\\\\multiple_choice_exam_2023.pdf' | Select-Object Length\")",
+      "Bash(jupyter nbconvert *)"
+    ]
+  }
+}
